@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Random;
 import java.util.Scanner;
 
 
@@ -158,12 +159,23 @@ public class Client extends Node {
 	}
 
 	/**
+	 * Generates a random port number between 50000 and 60000.
+	 *
+	 * @return Random port number between 50000 and 60000.
+	 */
+	public static int getRandomSrcPort() {
+		Random rand = new Random();
+		return 50000 + rand.nextInt(10001); // 10001 is exclusive, so the maximum is 60000
+	}
+
+	/**
 	 * Test method
 	 *
 	 * Sends a packet to a given address
 	 */
 	public static void main(String[] args) {
 		try {
+			int randomPort = Client.getRandomSrcPort();
 			(new Client(DEFAULT_DST_NODE, DEFAULT_DST_PORT, DEFAULT_SRC_PORT)).start();
 			System.out.println("Program completed");
 		} catch(java.lang.Exception e) {e.printStackTrace();}

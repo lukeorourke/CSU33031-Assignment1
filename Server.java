@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class Server extends Node {
 	static final int DEFAULT_PORT = 50001;
+	static final int DEFAULT_CLIENT_PORT = 50000;
 
 	private HashMap<String, ArrayList<InetSocketAddress>> producerSubscribers = new HashMap<>();
 	/*
@@ -48,6 +49,7 @@ public class Server extends Node {
 				case MessageType.DATA: {
 					// Extract producerId from buffer
 					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
+					buffer.get(producerIdBytes);
 					String producerId = new String(producerIdBytes);
 					System.out.println(producerId);
 
@@ -69,7 +71,6 @@ public class Server extends Node {
 					producerSubscribers.putIfAbsent(producerId, new ArrayList<>());
 					producerSubscribers.get(producerId).add((InetSocketAddress) packet.getSocketAddress());
 					message = "Successfully subscribed to " + producerId;
-					System.out.println("debug, subscriber address :" + packet.getSocketAddress());
 					sendResponse(packet.getSocketAddress(), message);
 					printSubscribers();
 					break;
@@ -105,6 +106,7 @@ public class Server extends Node {
             e.printStackTrace();
         }
     }
+
 	// change from ackpacketcontent to new type of packet content for producers data
 	private void forwardDataToSubscribersNew(String producerId, String dataMessage) {
 		if (producerSubscribers.containsKey(producerId)) {
