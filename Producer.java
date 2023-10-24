@@ -39,32 +39,40 @@ public class Producer extends Node {
             Scanner scanner = new Scanner(System.in);
             String userInput;
             do {
-                System.out.print("Enter the frame name (e.g. frame001) or type 'exit' to quit: ");
+                System.out.println("Do you want to send [1] Frame, [2] Audio or type 'exit' to quit?");
                 userInput = scanner.nextLine();
 
-                if (!userInput.equals("exit")) {
-                    byte[] frameData = readFrame(userInput);
+                if (userInput.equals("1")) {
+                    System.out.print("Enter the frame name (e.g. frame001): ");
+                    String frameName = scanner.nextLine();
+                    byte[] frameData = readFrame(frameName);
                     sendFrameToServer(frameData);
                     Thread.sleep(500); // Add a delay between sending frames, adjust as needed
+
+                } else if (userInput.equals("2")) {
+                    System.out.print("Enter the audio file name (e.g. audio001): ");
+                    String audioName = scanner.nextLine();
+                    byte[] audioData = readAudioFile(audioName);
+                    sendAudioToServer(audioData);
+                    Thread.sleep(500); // Add a delay between sending audios, adjust as needed
                 }
             } while (!userInput.equals("exit"));
             scanner.close();
         }
 
 
-    private void sendToServer(String data) {
+    private void sendAudioToServer(byte[] data) {
         try {
             byte[] producerBytes = producerId.getBytes();
-            ByteBuffer headerBuffer = createHeader(MessageType.DATA, producerBytes, (byte) 1); // Assuming streamId is 1
+            ByteBuffer headerBuffer = createHeader(MessageType.AUDIO, producerBytes, (byte) 1); // Assuming streamId is 1
 
-            byte[] payload = data.getBytes();
-            ByteBuffer buffer = ByteBuffer.allocate(headerBuffer.capacity() + payload.length);
+            ByteBuffer buffer = ByteBuffer.allocate(headerBuffer.capacity() + data.length);
             buffer.put(headerBuffer.array());
-            buffer.put(payload);
+            buffer.put(data);
 
             DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.capacity(), dstAddress);
             socket.send(packet);
-            System.out.println("Data sent to server");
+            System.out.println("Audio sent to server");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -128,6 +136,24 @@ public class Producer extends Node {
             e.printStackTrace();
         }
         return frameData;
+    }
+
+    // Modified to read audio files
+    private byte[] readAudioFile(String audioFileName) {
+        String baseFolderPath = "AudioFiles";
+        String filename = String.format("%s/%s.wav", baseFolderPath, audioFileName);
+
+        byte[] audioData = new byte[0];
+        try {
+            File audioFile = new File(filename);
+            FileInputStream fis = new FileInputStream(audioFile);
+            audioData = new byte[(int) audioFile.length()];
+            fis.read(audioData);
+            fis.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return audioData;
     }
 
     private static String generateID(){

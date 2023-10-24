@@ -50,7 +50,7 @@ public class AckPacketContent extends PacketContent {
 	 * @return Returns the content of the packet as String.
 	 */
 	public String toString() {
-		return "ACK:" + info;
+		return "ACK : " + info;
 	}
 
 	/**

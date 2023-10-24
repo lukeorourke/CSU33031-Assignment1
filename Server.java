@@ -46,12 +46,12 @@ public class Server extends Node {
 					System.out.println("New Producer with ID: " + producerId);
 					break;
 				}
-				case MessageType.DATA: {
+				case MessageType.DATA:
+				case MessageType.AUDIO: {
 					// Extract producerId from buffer
 					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
 					buffer.get(producerIdBytes);
 					String producerId = new String(producerIdBytes);
-					System.out.println(producerId);
 
 					// Extract the data message after producerId
 					byte[] dataBytes = new byte[buffer.remaining()]; // Assuming the rest of the buffer is the data
@@ -60,7 +60,7 @@ public class Server extends Node {
 					dataMessage = removeNonPrintable(dataMessage);
 					System.out.println("Received data from producer: " + dataMessage);
 					// Forward this data to all clients that are subscribed to this producer
-					forwardDataToSubscribersNew(producerId, dataMessage);
+					forwardDataToSubscribersNew(producerId, dataMessage, packetType);
 					break;
 				}
 				case MessageType.SUBSCRIBE: {
@@ -101,21 +101,22 @@ public class Server extends Node {
 			response= new AckPacketContent(message).toDatagramPacket();
 			response.setSocketAddress(target);
 			socket.send(response);
-			System.out.println("sent to address : " + target);
+			System.out.println("sent confirmation of Client's request to address : " + target);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-	// change from ackpacketcontent to new type of packet content for producers data
-	private void forwardDataToSubscribersNew(String producerId, String dataMessage) {
+
+	private void forwardDataToSubscribersNew(String producerId, String dataMessage, byte packetType) {
 		if (producerSubscribers.containsKey(producerId)) {
 			System.out.println("Found subscribers for producer: " + producerId);
 			ArrayList<InetSocketAddress> subscribers = producerSubscribers.get(producerId);
 
 			// Create a ByteBuffer to combine the header and data for forwarding
-			ByteBuffer buffer = ByteBuffer.allocate(1 + dataMessage.length());
-			buffer.put(MessageType.DATA); // Adding the MessageType.DATA header
+			ByteBuffer buffer = ByteBuffer.allocate(1 + producerId.length() + dataMessage.length());
+			buffer.put(packetType); // Adding the message type header
+			buffer.put(producerId.getBytes());
 			buffer.put(dataMessage.getBytes());
 
 			byte[] combinedData = buffer.array();
@@ -123,10 +124,12 @@ public class Server extends Node {
 			for (InetSocketAddress subscriberAddress : subscribers) {
 				try {
 					DatagramPacket frame;
-					frame= new AckPacketContent(dataMessage).toDatagramPacket();
-					frame.setSocketAddress(subscriberAddress);
+					//frame= new AckPacketContent(dataMessage).toDatagramPacket();
+					//frame = new AckPacketContent(new String(combinedData)).toDatagramPacket();
+					//frame.setSocketAddress(subscriberAddress);
+					frame = new DatagramPacket(combinedData, combinedData.length, subscriberAddress);
 					socket.send(frame);
-					System.out.println("sent to address : " + subscriberAddress);
+					System.out.println("sent data to address : " + subscriberAddress);
 
 				} catch (IOException e) {
 					System.err.println("Error sending data to subscriber: " + e.getMessage());

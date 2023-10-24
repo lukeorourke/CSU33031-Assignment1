@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -39,7 +40,6 @@ public class Client extends Node {
 		catch(java.lang.Exception e) {e.printStackTrace();}
 	}
 
-
 	/**
 	 * Assume that incoming packets contain a String and print the string.
 	 */
@@ -47,23 +47,31 @@ public class Client extends Node {
 
 			System.out.println("packet received");
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
-			//byte packetType = buffer.get();
+			byte packetType = buffer.get();
 
-			//switch (packetType) {
-			///	case MessageType.DATA: {
-			// Extract the data message
-			//		byte[] dataBytes = new byte[buffer.remaining()]; // Assuming the rest of the buffer is the data
-			//		buffer.get(dataBytes);
-			//	String dataMessage = new String(dataBytes);
-			//	System.out.println("Received data: " + dataMessage);
-			//	break;
-			//	}
-			//	default: {
-			PacketContent content = PacketContent.fromDatagramPacket(packet);
-			System.out.println(content.toString());
-			//	break;
-			//	}
-			//	}
+			switch (packetType) {
+				case MessageType.DATA:
+				case MessageType.AUDIO:{
+					//Extract the data message
+					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
+					buffer.get(producerIdBytes);
+					String producerId = new String(producerIdBytes, StandardCharsets.UTF_8);
+
+					byte[] dataBytes = new byte[buffer.remaining()]; // Assuming the rest of the buffer is the data
+					buffer.get(dataBytes);
+					String dataMessage = new String(dataBytes);
+					if(packetType == MessageType.DATA)
+						System.out.println("Received frame from Streamer " + producerId + ": " + dataMessage);
+					else if (packetType == MessageType.AUDIO)
+						System.out.println("Received audio from Streamer " + producerId + ": " + dataMessage);
+					break;
+				}
+				default: {
+					PacketContent content = PacketContent.fromDatagramPacket(packet);
+					System.out.println(content.toString());
+					break;
+				}
+			}
 
 			this.notify();
 	}
@@ -77,7 +85,6 @@ public class Client extends Node {
 		Scanner scanner = new Scanner(System.in);
 
 		while (true) {
-			this.wait(5000);
 			System.out.print("Enter a command (subscribe, unsubscribe, listen, or exit ) :");
 			System.out.flush();
 
