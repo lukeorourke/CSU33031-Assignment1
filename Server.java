@@ -32,15 +32,11 @@ public class Server extends Node {
 			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
 			byte packetType = buffer.get();
 
-			// Prepare a response packet to send back
-			DatagramPacket responsePacket;
-			ByteBuffer responseBuffer;
-			byte[] responseMessage;
 			String message = "";  // This will be set based on the case
 
 			switch (packetType) {
 				case MessageType.NEW_PRODUCER: {
-					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
+					byte[] producerIdBytes = new byte[4]; // producerId is 4 bytes
 					buffer.get(producerIdBytes);
 					String producerId = new String(producerIdBytes);
 					System.out.println("New Producer with ID: " + producerId);
@@ -64,7 +60,7 @@ public class Server extends Node {
 					break;
 				}
 				case MessageType.SUBSCRIBE: {
-					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
+					byte[] producerIdBytes = new byte[4]; // producerId is 4 bytes
 					buffer.get(producerIdBytes);
 					String producerId = new String(producerIdBytes);
 
@@ -76,7 +72,7 @@ public class Server extends Node {
 					break;
 				}
 				case MessageType.UNSUBSCRIBE: {
-					byte[] unProducerIdBytes = new byte[4]; // Same assumption for the size
+					byte[] unProducerIdBytes = new byte[4]; //
 					buffer.get(unProducerIdBytes);
 					String unProducerId = new String(unProducerIdBytes);
 
@@ -137,36 +133,6 @@ public class Server extends Node {
 			System.out.println("No subscribers found for producer: " + producerId);
 	}
 
-	private void forwardDataToSubscribers(String producerId, String dataMessage) {
-		System.out.println(dataMessage);
-		if (producerSubscribers.containsKey(producerId)) {
-			System.out.println("Found subscribers for producer: " + producerId);
-			ArrayList<InetSocketAddress> subscribers = producerSubscribers.get(producerId);
-
-			// Create a ByteBuffer to combine the header and data for forwarding
-			ByteBuffer buffer = ByteBuffer.allocate(1 + dataMessage.length());
-			buffer.put(MessageType.DATA); // Adding the MessageType.DATA header
-			buffer.put(dataMessage.getBytes());
-
-			byte[] combinedData = buffer.array();
-
-			for (InetSocketAddress subscriberAddress : subscribers) {
-				try {
-					// Create a DatagramPacket with the combined data and send it to the subscriber
-					String combinedDataString = new String(combinedData);
-					DatagramPacket dataPacket = new DatagramPacket(combinedData, combinedData.length, subscriberAddress);
-					// TESTING FORWARDING TO SUBSCRIBERS
-					socket.send(dataPacket);
-					//sendResponse(subscriberAddress, combinedDataString);
-				} catch (IOException e) {
-					System.err.println("Error sending data to subscriber: " + e.getMessage());
-				}
-			}
-		}
-		else
-			System.out.println("No subscribers found for producer: " + producerId);
-	}
-
 	/**
 	 * Prints out the current list of subscribers for each producer.
 	 */
@@ -188,18 +154,6 @@ public class Server extends Node {
 		String cleanedData = data.replaceAll("[^\\x20-\\x7E]", "");
 		return cleanedData;
 	}
-
-
-	private void handleSubscribe(String message) {
-		System.out.println("Received subscribe message: " + message);
-		// Handle the subscribe logic here...
-	}
-
-	private void handleUnsubscribe(String message) {
-		System.out.println("Received unsubscribe message: " + message);
-		// Handle the unsubscribe logic here...
-	}
-
 
 	public synchronized void start() throws Exception {
 		System.out.println("Waiting for contact");

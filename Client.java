@@ -86,7 +86,7 @@ public class Client extends Node {
 		Scanner scanner = new Scanner(System.in);
 
 		while (true) {
-			System.out.print("Enter a command (subscribe, unsubscribe, listen, or exit ) :");
+			System.out.print("Enter a command (subscribe, unsubscribe, listen, or exit, e.g. subscribe abcd) :");
 			System.out.flush();
 
 			String message = scanner.nextLine();
@@ -121,43 +121,6 @@ public class Client extends Node {
 		}
 
 		scanner.close();
-	}
-
-	public void sendSubscribeMessage() {
-		try {
-			byte[] producerId = new byte[] { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
-			ByteBuffer headerBuffer = createHeader(MessageType.SUBSCRIBE, producerId, (byte) 2);
-
-			byte[] payload = "Client wants to subscribe".getBytes();
-			ByteBuffer buffer = ByteBuffer.allocate(headerBuffer.capacity() + payload.length);
-			buffer.put(headerBuffer.array());
-			buffer.put(payload);
-
-			DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.capacity(), InetAddress.getByName(dstAddress.getHostName()), dstAddress.getPort());
-			socket.send(packet);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void sendUnsubscribeMessage() {
-		try {
-			byte[] producerId = new byte[] { (byte) 0xAB, (byte) 0xCD, (byte) 0xEF };
-			ByteBuffer headerBuffer = createHeader(MessageType.UNSUBSCRIBE, producerId, (byte) 2);
-
-			byte[] payload = "Client wants to unsubscribe".getBytes();
-			ByteBuffer buffer = ByteBuffer.allocate(headerBuffer.capacity() + payload.length);
-			buffer.put(headerBuffer.array());
-			buffer.put(payload);
-
-			DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.capacity(), InetAddress.getByName(dstAddress.getHostName()), dstAddress.getPort());
-			socket.send(packet);
-
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private ByteBuffer createHeader(byte messageType, byte[] producerId, byte streamId) {
