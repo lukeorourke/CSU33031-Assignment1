@@ -45,35 +45,36 @@ public class Client extends Node {
 	 */
 	public synchronized void onReceipt(DatagramPacket packet) {
 
-			System.out.println("packet received");
-			ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
-			byte packetType = buffer.get();
 
-			switch (packetType) {
-				case MessageType.DATA:
-				case MessageType.AUDIO:{
-					//Extract the data message
-					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
-					buffer.get(producerIdBytes);
-					String producerId = new String(producerIdBytes, StandardCharsets.UTF_8);
+		System.out.println("packet received");
+		ByteBuffer buffer = ByteBuffer.wrap(packet.getData());
+		byte packetType = buffer.get();
 
-					byte[] dataBytes = new byte[buffer.remaining()]; // Assuming the rest of the buffer is the data
-					buffer.get(dataBytes);
-					String dataMessage = new String(dataBytes);
-					if(packetType == MessageType.DATA)
-						System.out.println("Received frame from Streamer " + producerId + ": " + dataMessage);
-					else if (packetType == MessageType.AUDIO)
-						System.out.println("Received audio from Streamer " + producerId + ": " + dataMessage);
-					break;
-				}
-				default: {
-					PacketContent content = PacketContent.fromDatagramPacket(packet);
-					System.out.println(content.toString());
-					break;
-				}
+		switch (packetType) {
+			case MessageType.DATA:
+			case MessageType.AUDIO:{
+				//Extract the data message
+				byte[] producerIdBytes = new byte[4]; // producerId is 4 bytes
+				buffer.get(producerIdBytes);
+				String producerId = new String(producerIdBytes, StandardCharsets.UTF_8);
+
+				byte[] dataBytes = new byte[buffer.remaining()]; // the rest of the buffer is the data
+				buffer.get(dataBytes);
+				String dataMessage = new String(dataBytes);
+				if(packetType == MessageType.DATA)
+					System.out.println("Received frame from Streamer " + producerId + ": " + dataMessage);
+				else if (packetType == MessageType.AUDIO)
+					System.out.println("Received audio from Streamer " + producerId + ": " + dataMessage);
+				break;
 			}
+			default: {
+				PacketContent content = PacketContent.fromDatagramPacket(packet);
+				System.out.println(content.toString());
+				break;
+			}
+		}
 
-			this.notify();
+		this.notify();
 	}
 
 	/**
@@ -112,7 +113,9 @@ public class Client extends Node {
 				this.wait();
 			}else if (command.equalsIgnoreCase("listen")){
 				System.out.println("listening for stream:");
-				this.wait(5000);
+				for(int i=0;i<20;i++) {
+					this.wait(100);
+				}
 			}
 
 		}
@@ -172,7 +175,7 @@ public class Client extends Node {
 	 */
 	public static int getRandomSrcPort() {
 		Random rand = new Random();
-		return 50000 + rand.nextInt(10001); // 10001 is exclusive, so the maximum is 60000
+		return 50000 + rand.nextInt(10001);
 	}
 
 	/**

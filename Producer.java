@@ -15,7 +15,7 @@ public class Producer extends Node {
 
     private static String producerId = "DEFAULT";
 
-    private final String predefinedMessage = "Producer's pre-defined message!"; // This is our predefined message for demonstration
+    private final String predefinedMessage = "Producer's pre-defined message!"; // This is my predefined message for demonstration
 
     Producer(String dstHost, int dstPort, int srcPort, String producerId) {
         try {
@@ -43,22 +43,30 @@ public class Producer extends Node {
                 userInput = scanner.nextLine();
 
                 if (userInput.equals("1")) {
-                    System.out.print("Enter the frame name (e.g. frame001): ");
-                    String frameName = scanner.nextLine();
-                    byte[] frameData = readFrame(frameName);
-                    sendFrameToServer(frameData);
-                    Thread.sleep(500); // Add a delay between sending frames, adjust as needed
+                    for (int i = 1; i <= 20; i++) {
+                        String frameName = String.format("frame%03d", i);
+                        System.out.println("Sending " + frameName);
+
+                        byte[] frameData = readFrame(frameName);
+                        sendFrameToServer(frameData);
+
+                        Thread.sleep(10); // Add a delay between sending frames
+                    }
 
                 } else if (userInput.equals("2")) {
-                    System.out.print("Enter the audio file name (e.g. audio001): ");
-                    String audioName = scanner.nextLine();
-                    byte[] audioData = readAudioFile(audioName);
-                    sendAudioToServer(audioData);
-                    Thread.sleep(500); // Add a delay between sending audios, adjust as needed
+                    for (int i = 1; i <= 20; i++) {
+                        String audioName = String.format("audio%03d", i);
+                        System.out.println("Sending " + audioName);
+
+                        byte[] audioData = readAudioFile(audioName);
+                        sendAudioToServer(audioData);
+
+                        Thread.sleep(10); // Add a delay between sending audios
+                    }
                 }
             } while (!userInput.equals("exit"));
             scanner.close();
-        }
+    }
 
 
     private void sendAudioToServer(byte[] data) {

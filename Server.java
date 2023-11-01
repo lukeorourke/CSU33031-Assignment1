@@ -49,12 +49,12 @@ public class Server extends Node {
 				case MessageType.DATA:
 				case MessageType.AUDIO: {
 					// Extract producerId from buffer
-					byte[] producerIdBytes = new byte[4]; // Assuming producerId is 4 bytes for simplicity
+					byte[] producerIdBytes = new byte[4]; // producerId is 4 bytes
 					buffer.get(producerIdBytes);
 					String producerId = new String(producerIdBytes);
 
 					// Extract the data message after producerId
-					byte[] dataBytes = new byte[buffer.remaining()]; // Assuming the rest of the buffer is the data
+					byte[] dataBytes = new byte[buffer.remaining()]; // the rest of the buffer is the data
 					buffer.get(dataBytes);
 					String dataMessage = new String(dataBytes);
 					dataMessage = removeNonPrintable(dataMessage);
@@ -124,9 +124,6 @@ public class Server extends Node {
 			for (InetSocketAddress subscriberAddress : subscribers) {
 				try {
 					DatagramPacket frame;
-					//frame= new AckPacketContent(dataMessage).toDatagramPacket();
-					//frame = new AckPacketContent(new String(combinedData)).toDatagramPacket();
-					//frame.setSocketAddress(subscriberAddress);
 					frame = new DatagramPacket(combinedData, combinedData.length, subscriberAddress);
 					socket.send(frame);
 					System.out.println("sent data to address : " + subscriberAddress);
